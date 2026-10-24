@@ -1,0 +1,1250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Landis Foundry</title>
+<meta name="description" content="The Landis Foundry: hot metal, two cats, and a couple of welding games.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
+<style>
+:root{
+  --bg:#0d0a09; --panel:#171110; --line:#3a2a22; --ink:#e8dcd0; --dim:#6f6259;
+  --orange:#ff8a1f; --hot:#ffd23f; --red:#ff3b1f; --steel:#7d8fa3; --green:#5fe08a;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; color:var(--ink); line-height:1.5;
+  background:radial-gradient(ellipse at 50% 0%,#2a1409 0%,var(--bg) 60%) fixed;
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+main{max-width:860px;margin:0 auto;padding:24px 16px 64px}
+header{text-align:center;margin-bottom:8px}
+h1{
+  margin:8px 0 0; font-size:clamp(26px,6vw,48px); letter-spacing:.08em; text-transform:uppercase;
+  color:var(--hot); text-shadow:0 0 8px var(--orange),0 0 24px var(--red);
+}
+.tag{color:var(--dim);margin:4px 0 0}
+pre{margin:0;font-family:inherit;font-size:clamp(7px,1.9vw,15px);line-height:1.05;white-space:pre}
+.scene{text-align:center;margin:12px 0}
+.scene pre{display:inline-block;text-align:left}
+#cat{cursor:pointer;user-select:none;display:inline-block}
+#cat:hover{filter:brightness(1.12)}
+#catArt{filter:drop-shadow(0 0 10px rgba(255,120,30,.35))}
+#speech{min-height:3em;text-align:center;color:var(--hot);margin:6px 0 0}
+.hint{text-align:center;color:var(--dim);font-size:12px}
+
+.pick-label{text-align:center;color:var(--dim);font-size:12px;letter-spacing:.15em;text-transform:uppercase;margin:18px 0 8px}
+.pick{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.pick button{
+  background:var(--panel);color:var(--ink);border:2px solid var(--line);box-shadow:none;
+  text-transform:none;letter-spacing:0;font-weight:normal;margin:0;
+  padding:10px 14px;min-width:200px;text-align:left;flex:1 1 200px;max-width:320px;
+}
+.pick button b{display:block;color:var(--orange);text-transform:uppercase;letter-spacing:.08em;font-size:16px}
+.pick button span{display:block;color:var(--dim);font-size:12px}
+.pick button:hover{border-color:var(--orange)}
+.pick button[aria-checked="true"]{border-color:var(--hot);box-shadow:0 0 14px rgba(255,138,31,.45);background:#221510}
+.pick button[aria-checked="true"] b::after{content:"  \2713";color:var(--hot)}
+.pick button:active{transform:none}
+
+.hazard{height:10px;margin:28px 0;background:repeating-linear-gradient(45deg,var(--hot) 0 14px,#111 14px 28px);opacity:.85}
+section.game{background:var(--panel);border:2px solid var(--line);padding:16px;margin:0 0 20px}
+section.game h2{margin:0 0 4px;color:var(--orange);text-transform:uppercase;letter-spacing:.06em;font-size:18px}
+section.game p{margin:0 0 12px;color:var(--dim);font-size:14px}
+.gfx{font-size:clamp(9px,2.6vw,15px);line-height:1.15;overflow-x:auto;margin:8px 0}
+.stat{color:var(--ink);font-size:14px;min-height:1.5em}
+button{
+  font:inherit;color:#1a0e06;background:var(--orange);border:0;padding:10px 16px;margin:6px 8px 0 0;
+  cursor:pointer;text-transform:uppercase;letter-spacing:.05em;font-weight:bold;
+  box-shadow:0 3px 0 #8a3d00; touch-action:manipulation;
+}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 #8a3d00}
+button.big{padding:16px 22px;background:var(--hot)}
+.g{color:var(--green)}.o{color:var(--orange)}.r{color:var(--red)}.d{color:var(--dim)}.h{color:var(--hot)}
+footer{text-align:center;color:var(--dim);font-size:12px;margin-top:32px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 id="siteName">The Landis Foundry</h1>
+    <p class="tag">Hot metal. Soft paws. Two supervisors.</p>
+  </header>
+
+  <div class="pick-label">Choose your character</div>
+  <div class="pick" id="pick" role="radiogroup" aria-label="Choose your cat">
+    <button type="button" role="radio" aria-checked="false" data-cat="willy">
+      <b>Willy</b><span>black tuxedo girl &middot; white chest &amp; paws &middot; pink bow &middot; dignified</span>
+    </button>
+    <button type="button" role="radio" aria-checked="false" data-cat="tyrone">
+      <b>Tyrone</b><span>all white &middot; black tail with a white tip &middot; chaos</span>
+    </button>
+    <button type="button" role="radio" aria-checked="false" data-cat="raccoon">
+      <b>Bandit</b><span>gray raccoon &middot; bandit mask &middot; ringed tail &middot; here for the cat food</span>
+    </button>
+  </div>
+
+  <div class="scene">
+    <pre id="fire" aria-hidden="true"></pre>
+    <div id="cat" role="button" tabindex="0" aria-label="Pet the cat"><pre id="catArt"></pre></div>
+  </div>
+  <div id="speech" aria-live="polite"></div>
+  <div class="hint">(click the cat)</div>
+
+  <div class="hazard"></div>
+
+  <section class="game">
+    <h2>Weld Bead</h2>
+    <p>Hold the button (or SPACE) to heat. Let go to cool. Keep the heat inside the green band to lay the bead. Stay in the red too long and you burn through.</p>
+    <pre id="weldGfx" class="gfx"></pre>
+    <div id="weldStat" class="stat"></div>
+    <button id="weldStart">Start</button>
+    <button id="weldHold" class="big">Hold to weld</button>
+  </section>
+
+  <section class="game">
+    <h2>The Pour</h2>
+    <p>Five pours. Hit the button (or SPACE) when the ladle is over the mold. Each round it gets faster.</p>
+    <pre id="pourGfx" class="gfx"></pre>
+    <div id="pourStat" class="stat"></div>
+    <button id="pourStart">Start</button>
+    <button id="pourGo" class="big">Pour!</button>
+  </section>
+
+  <section class="game">
+    <h2>Midnight Raid</h2>
+    <p>You are a raccoon. The cat food is up on a high shelf now, and only the cats can reach it, by jumping from the table. You have to launch from the floor. Press JUMP (or SPACE) when your raccoon reaches the right spot. Each round the shelf moves and the window gets tighter.</p>
+    <pre id="raidGfx" class="gfx"></pre>
+    <div id="raidStat" class="stat"></div>
+    <button id="raidStart">Start</button>
+    <button id="raidJump" class="big">Jump!</button>
+  </section>
+
+  <section class="game">
+    <h2>Shelf Defense</h2>
+    <p>Someone is breaking in. You play whoever you picked at the top, up on the shelf with gravity on your side. Press KNOCK (or SPACE) to push the next item off at just the right moment so it lands on the intruder as he walks underneath. Heavy items drop fast, light ones drift. Don't let him reach the safe.</p>
+    <pre id="shelfGfx" class="gfx"></pre>
+    <div id="shelfStat" class="stat"></div>
+    <button id="shelfStart">Start</button>
+    <button id="shelfKnock" class="big">Knock it!</button>
+  </section>
+
+  <section class="game">
+    <h2>Alley Scrap</h2>
+    <p>Neighborhood cats keep picking fights behind the foundry. Your opponent shows a tell, and you pick the move that beats it. <b>Swat</b> beats a pounce, <b>Dodge</b> beats a swipe, <b>Hiss</b> beats a stare. Move too early and you flinch. Wait too long and you eat it. Each cat fights differently: Tyrone has the most fluff but the slowest reflexes, Willy is quick but fragile, and Bandit sits in the middle. Keys 1, 2, 3 work too.</p>
+    <pre id="scrapGfx" class="gfx"></pre>
+    <div id="scrapStat" class="stat"></div>
+    <button id="scrapStart">Start</button>
+    <button id="scrapSwat" class="big">1 &middot; Swat</button>
+    <button id="scrapDodge" class="big">2 &middot; Dodge</button>
+    <button id="scrapHiss" class="big">3 &middot; Hiss</button>
+  </section>
+
+  <footer>&copy; <span id="year"></span> <span id="footName"></span> &mdash; no cats were burned in the making of this site.</footer>
+</main>
+
+<script>
+/* ---------- config: edit these ---------- */
+const SITE_NAME = "The Landis Foundry";
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+function store(k,v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v);}catch(e){return null;} }
+function say(t){ $("speech").textContent = t; }
+
+$("siteName").textContent = SITE_NAME;
+$("footName").textContent = SITE_NAME;
+$("year").textContent = new Date().getFullYear();
+document.title = SITE_NAME;
+
+/* ---------- ASCII fire (classic fire cellular automaton, coloured per cell) ---------- */
+const W = 64, H = 12, RAMP = " .:^*sS#@";
+const heat = new Array(W*(H+1)).fill(0);
+function stepFire(){
+  for(let x=0;x<W;x++){
+    const inMouth = x>=14 && x<50;
+    heat[H*W+x] = inMouth ? (Math.random()<0.8?255:140) : 0;
+  }
+  for(let y=0;y<H;y++){
+    for(let x=0;x<W;x++){
+      const a = heat[(y+1)*W+x];
+      const b = heat[(y+1)*W+((x-1+W)%W)];
+      const c = heat[(y+1)*W+((x+1)%W)];
+      const d = heat[Math.min(y+2,H)*W+x];
+      heat[y*W+x] = Math.max(0,(a+b+c+d)/4 - 7 - Math.random()*9);
+    }
+  }
+}
+function drawFire(){
+  let out="", run="", runColor="";
+  const flush=()=>{ if(run) out+=`<span style="color:${runColor}">${esc(run)}</span>`; run=""; };
+  for(let y=0;y<H;y++){
+    for(let x=0;x<W;x++){
+      const v = heat[y*W+x];
+      const ch = RAMP[Math.min(RAMP.length-1,Math.floor(v/256*RAMP.length))];
+      const t = v/255;
+      const col = v<12 ? "transparent" : `hsl(${Math.round(4+t*52)} 100% ${Math.round(12+t*52)}%)`;
+      if(col!==runColor){ flush(); runColor=col; }
+      run += ch;
+    }
+    flush(); out+="\n";
+  }
+  $("fire").innerHTML = out;
+}
+let lastFire=0;
+function fireLoop(ts){
+  if(ts-lastFire>80){ stepFire(); drawFire(); lastFire=ts; }
+  requestAnimationFrame(fireLoop);
+}
+for(let i=0;i<30;i++) stepFire();
+requestAnimationFrame(fireLoop);
+
+/* ---------- the cats ---------- */
+const CATS = {
+  willy: {
+    name: "Willy",
+    hello: "Willy takes her seat on the anvil. Dignity: intact.",
+    win:  "Willy approves of that. This is rare.",
+    lose: "Willy looks at the hole, then at you. No notes. Many notes.",
+    raidWin:  "Willy lets the raccoon have exactly one bite, then hops up from the table and takes the bowl back.",
+    raidLose: "Willy watches the raccoon fall off the shelf. Willy has not moved. Willy never moves.",
+    hits: [
+      "A direct hit. Willy does not look down.",
+      "Willy pushes the next item off the shelf, maintaining eye contact the entire time.",
+      "Gravity does the rest. Willy merely made the introductions."
+    ],
+    defWin:  "The foundry is safe. Willy returns to her nap with no further comment.",
+    defLose: "The safe is gone. Willy remembers everything. Willy will hold this against him forever.",
+    champWin:  "Willy has won the alley. She will deny she ever fought anyone.",
+    champLose: "Willy was merely resting. Everything is fine. Do not look at her.",
+    meows: [
+      "mrrp.",
+      "Willy adjusts her bow. Nobody asked.",
+      "*purrrrrr*",
+      "Willy stares at the weld. Willy judges the weld.",
+      "meow. (translation: tuna. now.)",
+      "*slow blink* ...you may continue.",
+      "Willy knocks a bolt off the bench. Deliberately.",
+      "Willy has opinions about your technique.",
+      "prrrt?"
+    ]
+  },
+  tyrone: {
+    name: "Tyrone",
+    hello: "Tyrone has arrived. He is already a little sooty.",
+    win:  "Tyrone does a victory zoomie around the anvil.",
+    lose: "Tyrone is horrified, and also very curious about the hole.",
+    raidWin:  "Tyrone tries to join the raid and ends up face-first in the food bowl too.",
+    raidLose: "Tyrone cheers from the table. The raccoon is not comforted.",
+    hits: [
+      "BONK! Tyrone is thrilled and knocks off one more just to see.",
+      "Tyrone is now vibrating with joy.",
+      "Tyrone does not fully understand the plan but he loves it."
+    ],
+    defWin:  "The foundry is safe! Tyrone celebrates by knocking over the last item on purpose.",
+    defLose: "The safe is gone. Tyrone doesn't totally get it, but he's sad too.",
+    champWin:  "Tyrone rules the alley. He immediately falls asleep in a patch of sun.",
+    champLose: "Tyrone limps home. He will tell the story differently later.",
+    meows: [
+      "MROW!",
+      "*chases the white tip of his own tail*",
+      "Tyrone has soot on his paws. He is delighted.",
+      "Tyrone is staring at a spark. Nothing else exists.",
+      "*loud purring, no reason given*",
+      "Tyrone sits very still to stay clean. He is not clean.",
+      "mew? (he walked into the anvil)",
+      "Tyrone sits on your blueprints. White fur on everything.",
+      "*flops over*"
+    ]
+  },
+  raccoon: {
+    name: "Bandit",
+    hello: "Bandit has come in through the vent. He is not supposed to be here.",
+    win:  "Bandit did the weld. Then he washed it, because that's what he does.",
+    lose: "Bandit looks at the hole in the metal and sees a door.",
+    raidWin:  "Bandit got the cat food. Bandit has no regrets.",
+    raidLose: "Bandit is thinking about it. Bandit will be back at midnight.",
+    hits: [
+      "Bandit knows a good diversion when he drops one.",
+      "Bandit respects the hustle, but this is HIS shelf.",
+      "Bandit has done this before, from the other side."
+    ],
+    defWin:  "The foundry is safe. Bandit expects payment in cat food.",
+    defLose: "The safe is gone. Bandit has some thoughts about how he got in.",
+    champWin:  "Bandit has won the alley. He will now inspect the dumpster as the new owner.",
+    champLose: "Bandit leaves with dignity and a stolen sandwich.",
+    meows: [
+      "*chitters*",
+      "Bandit is washing something. The something is a bolt.",
+      "*rustle rustle*",
+      "Bandit has found the trash can. This is his whole day.",
+      "*stares at the shelf*",
+      "Bandit adjusts his mask. It is attached to his face.",
+      "chirrr?",
+      "Bandit has taken one of your gloves. You will not see it again.",
+      "*tiny hands, big plans*"
+    ]
+  }
+};
+
+/* Colours. bg = fur fill, fg = outline glyph colour. */
+const PAL = {
+  willy: {
+    black: { bg:"#1c1c27", fg:"#8d8da8" },
+    white: { bg:"#f3efe7", fg:"#a39b90" },
+    eye:   "#a8ff3f", nose:"#ff7aa8"          /* a touch greener */
+  },
+  tyrone: {
+    black: { bg:"#1c1c27", fg:"#8d8da8" },
+    white: { bg:"#f6f3ec", fg:"#9a9387" },
+    eye:   "#b5803f", nose:"#ff7aa8"          /* light brown, shows up on white fur */
+  },
+  raccoon: {
+    gray:  { bg:"#8a8b96", fg:"#2b2b35" },
+    dark:  { bg:"#25252e", fg:"#a0a0b5" },
+    light: { bg:"#d4d4dc", fg:"#6a6a78" },
+    white: { bg:"#f1eee8", fg:"#9a9387" },
+    eye:   "#ffe27a", nose:"#15151c"
+  }
+};
+const STEEL = { bg:"#4a5868", fg:"#b9c7d8" };
+const BRICK = { bg:"#7a2f1d", fg:"#d0623f" };
+
+/* Cat is 11 rows (0-10); anvil below. Tail lives at the right side. */
+const CAT_ART = String.raw`
+        /\_____/\
+       /  o   o  \
+      (     ^     )
+       \  \___/  /
+        '-.___.-'
+       /   | |   \
+      /    | |    \      _
+     |     | |     |    / )
+     |     | |     |   / /
+     |_____| |_____|__/ /
+     (__)  (___)  (__)__/`.split("\n").slice(1);
+
+const ANVIL_ART = String.raw`
+  /____________________\===>
+     \______________/
+      |____________|
+     /______________\
+  ___|______________|___
+  |####################|
+  |####################|`.split("\n").slice(1);
+
+const isTail = (r,c) => (r<=9 && c>=20) || (r===10 && c>=22);
+
+/* Which fur colour sits at this spot? */
+function furOf(id,r,c,tail){
+  if(id==="raccoon"){
+    if(tail) return r%2===0 ? "dark" : "light";            /* ringed tail, dark tip */
+    if(r===0) return "gray";
+    if(r===1) return (c>=8 && c<=16) ? "dark" : "gray";    /* bandit mask */
+    if(r===2){
+      if(c>=10 && c<=14) return "white";                   /* muzzle */
+      if((c>=7 && c<=9) || (c>=15 && c<=17)) return "dark";
+      return "gray";
+    }
+    if(r===3) return (c>=8 && c<=16) ? "white" : "gray";
+    if(r===4) return (c>=9 && c<=15) ? "white" : "gray";
+    if(r>=5 && r<=9) return (c>=9 && c<=15) ? "light" : "gray";
+    return "dark";                                          /* paws */
+  }
+  if(tail){
+    if(id==="tyrone") return r<=7 ? "white" : "black";   /* black tail, little white tip */
+    return "black";
+  }
+  if(id==="tyrone") return "white";
+  /* Willy: tuxedo. White muzzle, chin, chest blaze and paws; the rest black. */
+  if(r>=2 && r<=3 && c>=10 && c<=14) return "white";
+  if(r===4 && c>=9 && c<=16) return "white";
+  if(r>=5 && r<=9 && c>=9 && c<=15) return "white";
+  if(r===10) return "white";
+  return "black";
+}
+
+function buildCat(id){
+  const P = PAL[id];
+  const rows = CAT_ART.slice();
+  if(id==="willy") rows[0] = rows[0].slice(0,6) + "<>" + rows[0].slice(8);   /* her bow */
+  if(id==="raccoon") rows[0] = "        ()_____()";                          /* round ears */
+  const grid = [];
+
+  rows.forEach((line,r)=>{
+    const chars = [...line];
+    const row = chars.map(ch=>({ch,fg:null,bg:null,bold:false}));
+    for(const tailPass of [false,true]){
+      let lo=-1, hi=-1;
+      chars.forEach((ch,c)=>{
+        if(ch!==" " && isTail(r,c)===tailPass){ if(lo<0) lo=c; hi=c; }
+      });
+      if(lo<0) continue;
+      for(let c=lo;c<=hi;c++){
+        const col = P[ furOf(id,r,c,tailPass) ];
+        row[c].bg = col.bg; row[c].fg = col.fg;
+      }
+    }
+    grid.push(row);
+  });
+
+  /* details */
+  grid[1][10].fg = P.eye; grid[1][10].bold = true;
+  grid[1][14].fg = P.eye; grid[1][14].bold = true;
+  grid[2][12].fg = P.nose; grid[2][12].bold = true;
+  if(id==="willy"){
+    [6,7].forEach(c=>{ grid[0][c].bg="#ff4f9a"; grid[0][c].fg="#fff"; grid[0][c].bold=true; });
+  }
+
+  /* anvil */
+  ANVIL_ART.forEach((line,i)=>{
+    const chars=[...line];
+    const col = i>=5 ? BRICK : STEEL;
+    let lo=-1,hi=-1;
+    chars.forEach((ch,c)=>{ if(ch!==" "){ if(lo<0) lo=c; hi=c; }});
+    grid.push(chars.map((ch,c)=>({ch, fg:col.fg, bg:(c>=lo&&c<=hi)?col.bg:null, bold:false})));
+  });
+  return grid;
+}
+
+function renderCat(){
+  const grid = buildCat(cur);
+  let html = "";
+  grid.forEach(row=>{
+    let run="", key="";
+    const flush=()=>{
+      if(!run) return;
+      html += key ? `<span style="${key}">${esc(run)}</span>` : esc(run);
+      run="";
+    };
+    row.forEach(cell=>{
+      const k = (cell.bg||cell.fg) ? `color:${cell.fg||"inherit"};${cell.bg?`background:${cell.bg};`:""}${cell.bold?"font-weight:bold;":""}` : "";
+      if(k!==key){ flush(); key=k; }
+      run += cell.ch;
+    });
+    flush(); html += "\n";
+  });
+  $("catArt").innerHTML = html;
+  $("cat").setAttribute("aria-label","Pet "+CATS[cur].name);
+}
+
+/* ---------- character select ---------- */
+let cur = store("cat");
+if(!CATS[cur]) cur = "willy";
+let meowN = 0;
+
+function selectCat(id, announce){
+  cur = id; store("cat", id); meowN = 0;
+  document.querySelectorAll("#pick button").forEach(b=>{
+    b.setAttribute("aria-checked", b.dataset.cat===id ? "true" : "false");
+  });
+  renderCat();
+  if(announce) say(CATS[id].hello);
+}
+document.querySelectorAll("#pick button").forEach(b=>{
+  b.addEventListener("click",()=>selectCat(b.dataset.cat,true));
+});
+selectCat(cur,false);
+say(CATS[cur].hello);
+
+function pet(){
+  const m = CATS[cur].meows;
+  say(m[meowN++ % m.length]);
+}
+$("cat").addEventListener("click",pet);
+$("cat").addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pet(); }});
+
+/* ---------- input routing: SPACE goes to whichever game is active ---------- */
+let active = null;
+document.addEventListener("keydown",e=>{
+  if(e.code==="Space" && active && !e.repeat){ e.preventDefault(); active.down && active.down(); }
+});
+document.addEventListener("keyup",e=>{
+  if(e.code==="Space" && active){ e.preventDefault(); active.up && active.up(); }
+});
+const unfocus = () => { const a=document.activeElement; if(a && a.blur) a.blur(); };
+
+/* ---------- game 1: weld bead ---------- */
+const weld = (()=>{
+  const LEN = 44;
+  let running=false, temp=0, prog=0, holding=false, last=0, burn=0, t=0, t0=0, loop=0;
+  const hiBest = () => parseFloat(store("weldBest")||"0");
+  function band(){ const c = 50 + 22*Math.sin(t*0.9) + 8*Math.sin(t*2.3); return [c-11, c+11]; }
+  function render(msg){
+    const [lo,hi] = band();
+    let bar="";
+    for(let i=0;i<LEN;i++){
+      const p = i/LEN*100, inBand = p>=lo && p<=hi, filled = p<temp;
+      let ch = filled ? "█" : (inBand ? "▒" : "·");
+      let cls = inBand ? "g" : (filled ? (temp>90?"r":"o") : "d");
+      bar += `<span class="${cls}">${ch}</span>`;
+    }
+    const n = Math.round(prog/100*LEN);
+    let bead = "";
+    for(let i=0;i<LEN;i++) bead += i<n ? '<span class="h">=</span>' : '<span class="d">-</span>';
+    const spark = holding && running ? '<span class="h"> *✦*</span>' : "";
+    $("weldGfx").innerHTML =
+      `HEAT  [${bar}]\nBEAD  [${bead}]${spark}\n` +
+      `       cold${" ".repeat(LEN-10)}melt`;
+    $("weldStat").textContent = msg || (running ? `Bead: ${prog.toFixed(0)}%` : "Press Start.");
+  }
+  function frame(id,ts){
+    if(!running || id!==loop) return;
+    const dt = Math.min(0.05,(ts-last)/1000); last=ts; t+=dt;
+    temp = clamp(temp + (holding?48:-30)*dt, 0, 100);
+    const [lo,hi] = band();
+    if(temp>=lo && temp<=hi) prog += 11*dt;
+    if(temp>92) burn += dt; else burn = Math.max(0,burn-dt);
+    if(burn>1.2){
+      running=false; render("BURN THROUGH. You made a hole.");
+      say(CATS[cur].lose); return;
+    }
+    if(prog>=100){
+      running=false; prog=100;
+      const time = (performance.now()-t0)/1000;
+      const best = hiBest();
+      let msg = `Clean bead in ${time.toFixed(1)}s.`;
+      if(!best || time<best){ store("weldBest",String(time)); msg += " New best!"; }
+      else msg += ` (best ${best.toFixed(1)}s)`;
+      render(msg); say(CATS[cur].win); return;
+    }
+    render(); requestAnimationFrame(ts2=>frame(id,ts2));
+  }
+  function start(){
+    unfocus();
+    if(active && active!==api && active.stop) active.stop();
+    active=api; running=true; temp=0; prog=0; burn=0; holding=false; t=0; t0=performance.now();
+    const id=++loop; last=performance.now(); requestAnimationFrame(ts2=>frame(id,ts2));
+  }
+  const api = {
+    down(){ holding=true; }, up(){ holding=false; }, stop(){ running=false; render(); }
+  };
+  const b = $("weldHold");
+  b.addEventListener("pointerdown",e=>{ e.preventDefault(); holding=true; });
+  ["pointerup","pointerleave","pointercancel"].forEach(ev=>b.addEventListener(ev,()=>{ holding=false; }));
+  $("weldStart").addEventListener("click",start);
+  render();
+  return api;
+})();
+
+/* ---------- game 2: the pour ---------- */
+const pour = (()=>{
+  const LEN = 50;
+  let running=false, round=0, pos=0, dir=1, target=0, tw=6, scores=[], last=0, flash="", loop=0;
+  function newRound(){
+    target = 12 + Math.random()*76; tw = Math.max(3.5, 8 - round);
+    pos = 0; dir = 1;
+  }
+  function render(msg){
+    let mold="", ladle="";
+    for(let i=0;i<LEN;i++){
+      const p = i/LEN*100;
+      const inT = Math.abs(p-target) <= tw;
+      const atL = Math.abs(p-pos) < 100/LEN;
+      mold += inT ? '<span class="o">'+(i%2?"]":"[")+'</span>' : '<span class="d">_</span>';
+      ladle += atL ? '<span class="h">V</span>' : " ";
+    }
+    const done = scores.reduce((a,b)=>a+b,0);
+    $("pourGfx").innerHTML =
+      `        LADLE ${ladle}\n` +
+      `        MOLD  ${mold}\n` +
+      `        ${'<span class="d">'+"=".repeat(LEN+7)+'</span>'}`;
+    $("pourStat").textContent = msg || (running
+      ? `Pour ${round+1}/5   Score: ${done}   ${flash}` : "Press Start.");
+  }
+  function frame(id,ts){
+    if(!running || id!==loop) return;
+    const dt = Math.min(0.05,(ts-last)/1000); last=ts;
+    const speed = 55 + round*28;
+    pos += dir*speed*dt;
+    if(pos>=100){ pos=100; dir=-1; } else if(pos<=0){ pos=0; dir=1; }
+    render(); requestAnimationFrame(ts2=>frame(id,ts2));
+  }
+  function start(){
+    unfocus();
+    if(active && active!==api && active.stop) active.stop();
+    active=api; running=true; round=0; scores=[]; flash=""; newRound();
+    const id=++loop; last=performance.now(); requestAnimationFrame(ts2=>frame(id,ts2));
+  }
+  function go(){
+    if(!running) return;
+    const err = Math.abs(pos-target);
+    const pts = Math.max(0, Math.round(100 - Math.max(0,err-tw)*5));
+    scores.push(pts);
+    flash = pts>=95 ? "PERFECT POUR!" : pts>=70 ? "Nice." : pts>0 ? "Spilled some." : "Poured on the floor.";
+    round++;
+    if(round>=5){
+      running=false;
+      const total = scores.reduce((a,b)=>a+b,0);
+      const best = parseInt(store("pourBest")||"0",10);
+      let msg = `Final score: ${total}/500.`;
+      if(total>best){ store("pourBest",String(total)); msg += " New best!"; }
+      else msg += ` (best ${best})`;
+      render(msg);
+      if(total>=400) say(CATS[cur].win);
+      else if(total<200) say(CATS[cur].lose);
+      return;
+    }
+    newRound();
+  }
+  const api = { down(){ go(); }, up(){}, stop(){ running=false; render(); } };
+  $("pourGo").addEventListener("click",go);
+  $("pourStart").addEventListener("click",start);
+  render();
+  return api;
+})();
+
+/* ---------- game 3: midnight raid (you are the raccoon) ---------- */
+const raid = (()=>{
+  const COLS=62, ROWS=12, G=40, VY=26, ROUNDS=5;
+  const BOWLY=[5,6,6,7,7], TOL=[3.4,3.0,2.6,2.2,1.8];
+  const ST_STEEL="color:#b9c7d8;background:#4a5868", ST_DIM="color:#6f6259", ST_TRAIL="color:#c9a227";
+  let running=false, loop=0, last=0;
+  let round=0, snacks=0, state="idle";            /* idle | run | air | result | done */
+  let px=3, y=0, vyc=0, vx=14, bowlX=40, bowlY=5, tol=3.4, x0=20, runEnd=30;
+  let trail=[], crossed=false, ate=false, missDx=0, resultT=0, msg="", catMood="calm";
+
+  function setup(){
+    vx = 14 + round*2.5;
+    bowlY = BOWLY[round]; tol = TOL[round];
+    const t2 = (VY + Math.sqrt(VY*VY - 2*G*bowlY)) / G;      /* time to come back down to bowl height */
+    bowlX = Math.round((10 + Math.random()*16) + vx*t2);
+    x0 = bowlX - vx*t2;                                       /* the exact launch spot */
+    runEnd = bowlX - 11;
+    px=3; y=0; vyc=0; trail=[]; crossed=false; ate=false; missDx=0; catMood="calm";
+    state="run"; msg="";
+  }
+
+  function catStyle(){
+    const id = cur==="raccoon" ? "willy" : cur;
+    const col = PAL[id][id==="willy" ? "black" : "white"];
+    return `color:${col.fg};background:${col.bg};font-weight:bold`;
+  }
+  function coonStyle(ch,i){
+    if(i<2) return i%2 ? "background:#d4d4dc;color:#25252e" : "background:#25252e;color:#d4d4dc";
+    if(i===2 || i===6) return "background:#8a8b96;color:#25252e";
+    if(i===3 || i===5) return "background:#25252e;color:#ffe27a;font-weight:bold";
+    return "background:#f1eee8;color:#25252e";
+  }
+
+  function render(){
+    const g = Array.from({length:ROWS},()=>Array.from({length:COLS},()=>[" ",""]));
+    const rowOf = yy => ROWS-2-Math.round(yy);
+    const put = (x,yy,str,style)=>{
+      const r = rowOf(yy); if(r<0 || r>=ROWS) return;
+      [...str].forEach((ch,i)=>{
+        const c = Math.round(x)+i;
+        if(c>=0 && c<COLS) g[r][c] = [ch, typeof style==="function" ? style(ch,i) : style];
+      });
+    };
+    for(let c=0;c<COLS;c++) g[ROWS-1][c] = ["=", ST_DIM];
+
+    /* training marker on round one */
+    if(round===0 && state==="run"){
+      const c = Math.round(x0); if(c>=0 && c<COLS) g[ROWS-1][c] = ["^","color:#5fe08a;font-weight:bold"];
+    }
+
+    /* the table the cats use */
+    const tl = bowlX-9;
+    put(tl,3,"[=====]",ST_STEEL);
+    for(let yy=0;yy<=2;yy++){ put(tl,yy,"|",ST_STEEL); put(tl+6,yy,"|",ST_STEEL); }
+    const face = {calm:"=^.^=", smug:"=^_^=", shock:"=O.O="}[catMood];
+    put(tl+1,4,face,catStyle());
+
+    /* the shelf and the bowl */
+    put(bowlX-4,bowlY-1,"[=======]",ST_STEEL);
+    for(let yy=bowlY-2; yy>=0; yy--) put(bowlX,yy,"|",ST_STEEL);
+    if(!ate) put(bowlX-4,bowlY+1,"CAT FOOD",ST_DIM);
+    put(bowlX-3,bowlY, ate ? "\\ NOM /" : "\\:.:.:/",
+        ch => (ch===":"||ch===".") ? "color:#ffd23f" : "color:#ff8a1f;font-weight:bold");
+
+    /* flight path */
+    trail.forEach(([tx,ty])=>put(tx,ty,".",ST_TRAIL));
+
+    /* the raccoon */
+    put(px-3, ate ? bowlY+1 : y, "~~(@.@)", coonStyle);
+
+    let html = "";
+    g.forEach(row=>{
+      let run="", key="";
+      const flush=()=>{ if(!run) return; html += key ? `<span style="${key}">${esc(run)}</span>` : esc(run); run=""; };
+      row.forEach(([ch,st])=>{ if(st!==key){ flush(); key=st; } run += ch; });
+      flush(); html += "\n";
+    });
+    $("raidGfx").innerHTML = html;
+
+    let stat;
+    if(state==="idle") stat = "Press Start. You're the raccoon. The cat food is up on the shelf.";
+    else if(state==="done") stat = msg;
+    else {
+      stat = `Round ${round+1}/${ROUNDS}   Snacks: ${snacks}   `;
+      if(msg) stat += msg;
+      else if(state==="run") stat += round===0 ? "Press JUMP when you reach the green ^." : "Press JUMP at the right spot.";
+    }
+    $("raidStat").textContent = stat;
+  }
+
+  function finish(){
+    running=false; state="done";
+    const best = parseInt(store("raidBest")||"0",10);
+    let m = `Raid over: ${snacks}/${ROUNDS} snacks.`;
+    if(snacks>best){ store("raidBest",String(snacks)); m += " New best!"; }
+    else m += ` (best ${best})`;
+    msg = m; render();
+    say(snacks>=3 ? CATS[cur].raidWin : CATS[cur].raidLose);
+  }
+
+  function frame(id,ts){
+    if(!running || id!==loop) return;
+    const dt = Math.min(0.04,(ts-last)/1000); last=ts;
+    if(state==="run"){
+      px += vx*dt;
+      if(px>=runEnd) px = 3;                                  /* run back around and try again */
+    } else if(state==="air"){
+      const yPrev = y;
+      px += vx*dt; vyc -= G*dt; y += vyc*dt;
+      trail.push([px,y]);
+      if(!crossed && vyc<0 && yPrev>=bowlY && y<bowlY){
+        crossed = true;
+        const dx = px-bowlX;
+        if(Math.abs(dx)<=tol){
+          ate=true; snacks++; px=bowlX; y=bowlY; vyc=0; state="result"; resultT=0; catMood="shock";
+          msg = Math.abs(dx)<=tol*0.35 ? "PERFECT LAUNCH! NOM NOM NOM." : "NOM. Cat food acquired.";
+        } else {
+          missDx = dx;
+        }
+      }
+      if(state==="air" && y<=0 && vyc<0){
+        y=0; state="result"; resultT=0; catMood="smug";
+        const off = Math.max(1, Math.round(Math.abs(missDx)-tol));
+        const cols = off>1 ? "columns" : "column";
+        msg = missDx<0 ? `Too early. Fell about ${off} ${cols} short.` : `Too late. Sailed about ${off} ${cols} past the bowl.`;
+      }
+    } else if(state==="result"){
+      resultT += dt;
+      if(resultT>1.4){
+        round++;
+        if(round>=ROUNDS){ finish(); return; }
+        setup();
+      }
+    }
+    render();
+    requestAnimationFrame(ts2=>frame(id,ts2));
+  }
+
+  function jump(){
+    if(!running || state!=="run") return;
+    state="air"; y=0; vyc=VY; trail=[]; crossed=false;
+  }
+  function start(){
+    unfocus();
+    if(active && active!==api && active.stop) active.stop();
+    active=api; running=true; round=0; snacks=0; setup();
+    const id=++loop; last=performance.now(); requestAnimationFrame(ts2=>frame(id,ts2));
+  }
+  const api = {
+    down(){ jump(); }, up(){},
+    stop(){ running=false; loop++; state="idle"; msg=""; ate=false; catMood="calm"; render(); }
+  };
+  $("raidStart").addEventListener("click",start);
+  $("raidJump").addEventListener("pointerdown",e=>{ e.preventDefault(); jump(); });
+  setup(); state="idle";
+  render();
+  return api;
+})();
+
+/* ---------- game 4: shelf defense (you are whoever you picked) ---------- */
+const shelf = (()=>{
+  const COLS=62, ROWS=13, SHELFY=9, TOPY=10, HEADY=4, HALF=2.8, SAFEX=COLS-9;
+  const LEVELS = [
+    {name:"The Lone Burglar", speed:7,    hp:2, items:5, wob:0},
+    {name:"Night Shift",      speed:9,    hp:3, items:6, wob:0},
+    {name:"The Crew Boss",    speed:10,   hp:3, items:7, wob:0.3},
+    {name:"The Professional", speed:11.5, hp:3, items:7, wob:0.4},
+    {name:"The Big Heist",    speed:12.5, hp:4, items:8, wob:0.4}
+  ];
+  const ITEMS = [
+    {name:"crucible",     art:"(U)",  g:46, col:["#ffd23f","#a0452a"]},
+    {name:"toolbox",      art:"[#]",  g:42, col:["#ffe27a","#b0281a"]},
+    {name:"hammer",       art:"[T]",  g:38, col:["#e8dcd0","#6b4a2a"]},
+    {name:"wrench",       art:"==o",  g:32, col:["#d6e2f0","#4a5868"]},
+    {name:"paint can",    art:"|P|",  g:26, col:["#ffffff","#2a7de1"]},
+    {name:"bucket",       art:"\\_/", g:22, col:["#d0d4da","#6a6f78"]},
+    {name:"welding mask", art:"(^)",  g:18, col:["#ffe27a","#25252e"]}
+  ];
+  const ST_STEEL="color:#b9c7d8;background:#4a5868", ST_DIM="color:#6f6259";
+  const ST_HOT="color:#ffd23f;font-weight:bold", ST_GREEN="color:#5fe08a;font-weight:bold";
+  const itemStyle = (def,dim) => dim ? "color:#6f6259;background:#2a211d" : `color:${def.col[0]};background:${def.col[1]};font-weight:bold`;
+  const weightWord = g => g>=38 ? "heavy, drops fast" : g>=26 ? "medium" : "light, drifts down";
+
+  let running=false, loop=0, last=0, state="idle";
+  let lv=0, lives=3, cleared=0, cx=-3, hp=2, hpMax=2, t=0, stun=0, swat=0, stateT=0, msg="", catX=8, catTarget=8;
+  let items=[], fx=[];
+  const usable = it => it.st==="shelf" && it.x > cx-1.5;
+  const nextItem = () => items.find(usable);
+
+  function setup(){
+    const L = LEVELS[lv];
+    hp = hpMax = L.hp; cx=-3; t=0; stun=0; swat=0; fx=[]; msg="";
+    const pool = ITEMS.slice().sort(()=>Math.random()-0.5);
+    items = [];
+    for(let i=0;i<L.items;i++){
+      items.push({ x: 8 + i*(38/(L.items-1)), def: pool[i%pool.length], st:"shelf", y:TOPY, v:0, checked:false, t:0 });
+    }
+    catX = catTarget = items[0].x-8;
+    state="intro"; stateT=0;
+  }
+
+  const coon = (ch,i) =>
+    i<2 ? (i%2 ? "background:#d4d4dc;color:#25252e" : "background:#25252e;color:#d4d4dc")
+    : (i===2||i===6) ? "background:#8a8b96;color:#25252e"
+    : (i===3||i===5) ? "background:#25252e;color:#ffe27a;font-weight:bold"
+    : "background:#f1eee8;color:#25252e";
+  function hero(sw){
+    const f = sw ? ">.<" : "^.^";
+    if(cur==="willy")  return ["<>="+f+"=", (ch,i)=> i<2 ? "background:#ff4f9a;color:#fff;font-weight:bold" : "background:#1c1c27;color:#8d8da8;font-weight:bold"];
+    if(cur==="tyrone") return ["~~="+f+"=", (ch,i)=> i===1 ? "background:#1c1c27;color:#8d8da8;font-weight:bold" : "background:#f6f3ec;color:#9a9387;font-weight:bold"];
+    return ["~~("+(sw?">.<":"@.@")+")", coon];
+  }
+
+  function render(){
+    const g = Array.from({length:ROWS},()=>Array.from({length:COLS},()=>[" ",""]));
+    const rowOf = yy => ROWS-2-Math.round(yy);
+    const put = (x,yy,str,style)=>{
+      const r = rowOf(yy); if(r<0 || r>=ROWS) return;
+      [...str].forEach((ch,i)=>{
+        const c = Math.round(x)+i;
+        if(c>=0 && c<COLS) g[r][c] = [ch, typeof style==="function" ? style(ch,i) : style];
+      });
+    };
+    for(let c=0;c<COLS;c++) g[ROWS-1][c] = ["=", ST_DIM];
+
+    /* shelf */
+    put(6,SHELFY,"=".repeat(COLS-12),ST_STEEL);
+    for(let yy=8; yy>=6; yy--){ put(8,yy,"|",ST_STEEL); put(COLS-9,yy,"|",ST_STEEL); }
+    put(0,6,"BREAK-IN >>",ST_DIM);
+
+    /* the safe */
+    const robbed = state==="robbed";
+    put(SAFEX+3,3,".--.",ST_STEEL);
+    put(SAFEX+3,2,"|"+(robbed?"  ":"$$")+"|", (ch)=> ch==="$" ? "color:#ffd23f;background:#4a5868;font-weight:bold" : ST_STEEL);
+    put(SAFEX+3,1,"|"+(robbed?"  ":"$$")+"|", (ch)=> ch==="$" ? "color:#ffd23f;background:#4a5868;font-weight:bold" : ST_STEEL);
+    put(SAFEX+3,0,"'--'",ST_STEEL);
+
+    /* items on the shelf, falling, shattered */
+    const nx = nextItem();
+    items.forEach(it=>{
+      if(it.st==="shelf") put(it.x-1,TOPY,it.def.art,itemStyle(it.def,!usable(it)));
+      else if(it.st==="fall") put(it.x-1,it.y,it.def.art,itemStyle(it.def,false));
+      else if(it.st==="shatter") put(it.x-1,0,"*.*",itemStyle(it.def,false));
+    });
+    if(nx && (state==="play" || state==="intro")){
+      put(nx.x,TOPY+1,"v",ST_HOT);
+      const c = Math.round(nx.x); if(c>=0 && c<COLS) g[ROWS-1][c] = ["^",ST_GREEN];   /* where it will land */
+    }
+
+    /* the hero on the shelf */
+    const [hs, hst] = hero(swat>0);
+    if(nx) catTarget = nx.x-8;
+    put(catX,TOPY,hs,hst);
+
+    /* the intruder */
+    const ko = state==="clear";
+    const dizzy = stun>0 || ko;
+    const leg = Math.floor(t*6)%2 ? " / \\ " : " | | ";
+    put(cx-2,3," _-_ ", "color:#c9c9d2;background:#25252e");
+    put(cx-2,2, ko ? "(x_x)" : dizzy ? "(@_@)" : "(o_o)", (ch,i)=> (i>0&&i<4) ? "color:#fff;background:#25252e" : "color:#25252e;background:#e6b98f");
+    put(cx-2,1,"/[$]\\",(ch,i)=> (i>0&&i<4) ? "color:#ffe27a;background:#2f7d3a;font-weight:bold" : "color:#e6b98f");
+    put(cx-2,0,leg,"color:#8d8da8");
+    if(dizzy) put(cx-2,4," * * ",ST_HOT);
+
+    /* effects, level banner */
+    fx.forEach(f=>put(f.x-2,f.y,f.txt,ST_HOT));
+    if(state==="intro"){
+      const s = `LEVEL ${lv+1}: ${LEVELS[lv].name.toUpperCase()}`;
+      put((COLS-s.length)/2,6,s,ST_HOT);
+    }
+
+    let html = "";
+    g.forEach(row=>{
+      let run="", key="";
+      const flush=()=>{ if(!run) return; html += key ? `<span style="${key}">${esc(run)}</span>` : esc(run); run=""; };
+      row.forEach(([ch,st])=>{ if(st!==key){ flush(); key=st; } run += ch; });
+      flush(); html += "\n";
+    });
+    $("shelfGfx").innerHTML = html;
+
+    let stat;
+    if(state==="idle") stat = "Press Start. You're up on the shelf. Don't let him reach the safe.";
+    else if(state==="done") stat = msg;
+    else {
+      const next = nextItem();
+      stat = `Level ${lv+1}/${LEVELS.length}   Lives: ${"♥".repeat(lives)}${"♡".repeat(3-lives)}   Intruder: ${"█".repeat(Math.max(0,hp))}${"░".repeat(Math.max(0,hpMax-hp))}`;
+      if(next) stat += `   Next: ${next.def.name} (${weightWord(next.def.g)})`; else stat += "   Nothing left to push!";
+      if(msg) stat += `   ${msg}`;
+    }
+    $("shelfStat").textContent = stat;
+  }
+
+  function finish(win){
+    running=false; state="done";
+    const total = win ? LEVELS.length : cleared;
+    const best = parseInt(store("shelfBest")||"0",10);
+    let m = win ? `Foundry saved! All ${LEVELS.length} levels cleared.` : `Game over. Levels cleared: ${cleared}/${LEVELS.length}.`;
+    if(total>best){ store("shelfBest",String(total)); m += " New best!"; } else m += ` (best ${best})`;
+    msg = m; render();
+    say(win ? CATS[cur].defWin : CATS[cur].defLose);
+  }
+
+  function updateItems(dt){
+    items.forEach(it=>{
+      if(it.st==="fall"){
+        it.v += it.def.g*dt; it.y -= it.v*dt;
+        if(!it.checked && it.y<=HEADY){
+          it.checked = true;
+          const dx = cx - it.x;
+          if(state==="play" && stun<=0 && Math.abs(dx)<=HALF){
+            hp--; stun=0.9; it.st="gone"; cx = Math.max(-3, cx-5);
+            const perfect = Math.abs(dx)<=1;
+            fx.push({x:it.x, y:5, txt: perfect ? "BONK!!" : " BONK ", t:0.8});
+            const h = CATS[cur].hits; say(h[Math.floor(Math.random()*h.length)]);
+            if(hp<=0){
+              state="clear"; stateT=0; cleared++;
+              msg = `Intruder down! (${cleared}/${LEVELS.length})`;
+            } else {
+              msg = `${perfect ? "PERFECT HIT" : "Direct hit"}! He's dizzy.`;
+            }
+          } else if(state==="play"){
+            msg = stun>0 ? "He's still dizzy (no extra damage)." : dx<0 ? "Too early! It landed in front of him." : "Too late! He'd already passed.";
+          }
+        }
+        if(it.st==="fall" && it.y<=0){ it.st="shatter"; it.t=0.5; it.y=0; }
+      } else if(it.st==="shatter"){
+        it.t -= dt; if(it.t<=0) it.st="gone";
+      }
+    });
+    fx.forEach(f=>f.t-=dt); fx = fx.filter(f=>f.t>0);
+  }
+
+  function frame(id,ts){
+    if(!running || id!==loop) return;
+    const dt = Math.min(0.04,(ts-last)/1000); last=ts;
+    stateT += dt;
+    if(state==="intro"){
+      if(stateT>1.3){ state="play"; stateT=0; }
+    } else if(state==="play"){
+      t += dt;
+      if(swat>0) swat-=dt;
+      if(stun>0) stun-=dt;
+      else { const L=LEVELS[lv]; cx += L.speed*(1+L.wob*Math.sin(t*1.8))*dt; }
+      updateItems(dt);
+      if(state==="play" && cx>=SAFEX){
+        state="robbed"; stateT=0; lives--; cx=SAFEX;
+        msg = lives>0 ? `He reached the safe! Lives left: ${lives}.` : "He got the safe. That was the last life.";
+      }
+    } else if(state==="clear" || state==="robbed"){
+      updateItems(dt);
+      const wait = state==="clear" ? 1.8 : 2.0;
+      if(stateT>wait){
+        if(state==="clear"){ lv++; if(lv>=LEVELS.length){ finish(true); return; } setup(); }
+        else { if(lives<=0){ finish(false); return; } setup(); }
+      }
+    }
+    catX += (catTarget-catX)*Math.min(1,dt*12);
+    render();
+    requestAnimationFrame(ts2=>frame(id,ts2));
+  }
+
+  function knock(){
+    if(!running || state!=="play") return;
+    const it = nextItem(); if(!it) return;
+    it.st="fall"; it.v=0; it.y=TOPY; it.checked=false; swat=0.25;
+  }
+  function start(){
+    unfocus();
+    if(active && active!==api && active.stop) active.stop();
+    active=api; running=true; lv=0; lives=3; cleared=0; setup();
+    const id=++loop; last=performance.now(); requestAnimationFrame(ts2=>frame(id,ts2));
+  }
+  const api = {
+    down(){ knock(); }, up(){},
+    stop(){ running=false; loop++; lv=0; lives=3; setup(); state="idle"; render(); }
+  };
+  $("shelfStart").addEventListener("click",start);
+  $("shelfKnock").addEventListener("pointerdown",e=>{ e.preventDefault(); knock(); });
+  setup(); state="idle";
+  render();
+  return api;
+})();
+
+/* ---------- game 5: alley scrap (cat fight) ---------- */
+const scrap = (()=>{
+  const COLS=62, ROWS=11, PX=10, OX=COLS-10-7, TOP=4;
+  const STATS = {
+    willy:   {hp:80,  power:14, win:1.3,  note:"quick and fragile"},
+    tyrone:  {hp:120, power:18, win:0.85, note:"tough but slow"},
+    raccoon: {hp:100, power:16, win:1.05, note:"balanced"}
+  };
+  const COUNTER = {pounce:"swat", swipe:"dodge", stare:"hiss"};
+  const TELL = {
+    pounce:{label:"POUNCE!", face:"( >.< )", col:"#ff8a1f"},
+    swipe: {label:"SWIPE!",  face:"( o_O )", col:"#4fd8ff"},
+    stare: {label:"STARE!",  face:"( O.O )", col:"#e07aff"}
+  };
+  const mk = (bg,fg)=>({bg,fg});
+
+  /* how each fighter is painted: pal = colours, region(r,c) = which colour, ov = special glyphs */
+  const SPEC = {
+    willy: { pal:{black:mk("#1c1c27","#8d8da8"), white:mk("#f3efe7","#a39b90"), pink:mk("#ff4f9a","#ffffff")},
+             region:(r,c)=> (r===0&&c===0) ? "pink" : ((r===2&&c>=1&&c<=5)||r===3) ? "white" : "black",
+             ov:(r,c)=> (r===0&&c===0) ? {ch:"<"} : null, eye:"#a8ff3f", tail:["black","black"] },
+    tyrone:{ pal:{white:mk("#f6f3ec","#9a9387"), black:mk("#1c1c27","#8d8da8")},
+             region:()=>"white", eye:"#b5803f", tail:["black","white"] },
+    raccoon:{pal:{gray:mk("#8a8b96","#2b2b35"), dark:mk("#25252e","#a0a0b5"), light:mk("#d4d4dc","#6a6a78"), white:mk("#f1eee8","#9a9387")},
+             region:(r,c)=> r===0 ? "gray" : r===1 ? "dark" : r===2 ? ((c>=2&&c<=4)?"white":"gray") : "dark",
+             eye:"#ffe27a", tail:["dark","light"] }
+  };
+  const OPPS = [
+    { name:"Tyrelle", hp:60,  dmg:9,  win:1.7,  fakeP:0,
+      intro:"Tyrelle, a short-haired tabby, wants a word. Mostly with his claws.",
+      lose:"Tyrelle retreats behind the dumpster, plotting his return.",
+      win_:"Tyrelle struts off like he won something.",
+      spec:{ pal:{tab:mk("#9c7a54","#3d2b18"), stripe:mk("#6e5236","#e8d3b0"), belly:mk("#d9c3a0","#6e5236")},
+             region:(r,c)=> ((r===0&&(c===2||c===4))||(r===1&&(c===0||c===6))) ? "stripe" : (r===2&&c>=2&&c<=4) ? "belly" : "tab",
+             eye:"#7fbf4a", tail:["tab","stripe"] } },
+    { name:"Pickles", hp:70,  dmg:10, win:1.2,  fakeP:0,
+      intro:"Pickles the calico is fast, and she knows it.",
+      lose:"Pickles zooms up a fence and sulks.",
+      win_:"Pickles zooms away, extremely pleased with herself.",
+      spec:{ pal:{white:mk("#f1eee8","#9a9387"), orange:mk("#e08a3c","#5a2a08"), black:mk("#25252e","#a0a0b5")},
+             region:(r,c)=> r===0 ? (c<=2?"orange":c>=4?"black":"white") : r===1 ? (c<=1?"black":c>=5?"orange":"white") : r===2 ? "white" : (c>=4?"orange":"white"),
+             eye:"#7fbf4a", tail:["orange","black"] } },
+    { name:"Duke", hp:100, dmg:15, win:1.5,  fakeP:0,
+      intro:"Duke, a very large orange tom, takes up most of the alley.",
+      lose:"Duke sits down hard. This is how Duke concedes.",
+      win_:"Duke flops down on the spot he won. It is a big spot.",
+      spec:{ pal:{orange:mk("#e07a2c","#5a2a08"), stripe:mk("#b85d17","#3d1a05"), belly:mk("#f2b27a","#8a4a15")},
+             region:(r,c)=> ((r===0&&c===3)||(r===1&&(c===1||c===5))) ? "stripe" : (r===2&&c>=2&&c<=4) ? "belly" : "orange",
+             eye:"#8ee04a", tail:["orange","stripe"] } },
+    { name:"One-Eye Gus", hp:90, dmg:12, win:1.35, fakeP:0.55,
+      intro:"One-Eye Gus has seen things. He also lies with his face.",
+      lose:"Gus nods once and limps away with dignity.",
+      win_:"Gus shakes his head. \"Kid, you fell for the oldest trick.\"",
+      spec:{ pal:{gray:mk("#6d717d","#23252d"), dark:mk("#3a3d47","#b0b4c0"), belly:mk("#9a9ea8","#3a3d47")},
+             region:(r,c)=> (r===1&&c===2) ? "dark" : (r===2&&c>=2&&c<=4) ? "belly" : "gray",
+             ov:(r,c)=> (r===1&&c===2) ? {ch:"-"} : null, eye:"#ffe27a", tail:["gray","dark"] } },
+    { name:"Black Betty", hp:120, dmg:14, win:1.1, fakeP:0.4,
+      intro:"Black Betty runs this alley. She wears a crown. Nobody asked how, and nobody saw her arrive.",
+      lose:"Black Betty melts back into the shadows. The alley is yours.",
+      win_:"Black Betty flicks her tail and vanishes. Was she ever there?",
+      spec:{ pal:{black:mk("#15151d","#7a7a96"), gold:mk("#ffd23f","#7a5a00")},
+             region:()=>"black",
+             eye:"#ffc933", tail:["black","black"], crown:true } }
+  ];
+
+  const ST_DIM="color:#5a4a40", ST_HOT="color:#ffd23f;font-weight:bold";
+  const cellStyle = (k,pal,bold) => `color:${pal[k].fg};background:${pal[k].bg}${bold?";font-weight:bold":""}`;
+  const bar = (v,m,len)=>{ const n=Math.round(clamp(v/m,0,1)*len); return "█".repeat(n)+"░".repeat(len-n); };
+  const hpColor = r => r>0.5 ? "color:#5fe08a" : r>0.25 ? "color:#ffd23f" : "color:#ff3b1f";
+
+  let running=false, loop=0, last=0, state="idle", stateT=0;
+  let fightIdx=0, retries=2, won=0, koWin=false;
+  let php=100, pmax=100, ohp=60, omax=60, opp=OPPS[0];
+  let real="pounce", fake=null, fakeAt=0, realWin=1.2, waitDur=1;
+  let msg="", anim=null, fx=[];
+
+  function startFight(carry){
+    opp = OPPS[fightIdx]; omax = ohp = opp.hp;
+    pmax = STATS[cur].hp;
+    php = carry ? Math.min(pmax, php + Math.round(pmax*0.35)) : pmax;
+    state="intro"; stateT=0; anim=null; fx=[];
+    const tl = (cur==="tyrone" && opp.name==="Tyrelle")
+      ? "Tyrelle again. Tyrone sighs through his nose. This is their fourth scrap this week."
+      : opp.intro;
+    msg = tl; say(tl);
+  }
+  function nextRound(){
+    state="wait"; stateT=0; anim=null;
+    waitDur = 0.7 + Math.random()*0.9;
+    const kinds = ["pounce","swipe","stare"];
+    real = kinds[Math.floor(Math.random()*3)];
+    fake = Math.random()<opp.fakeP ? kinds.filter(k=>k!==real)[Math.floor(Math.random()*2)] : null;
+    realWin = opp.win * STATS[cur].win;
+    fakeAt = fake ? realWin*0.4 : 0;
+    msg = "";
+  }
+  function resolve(kind,grade,move){
+    state="resolve"; stateT=0;
+    const S = STATS[cur], r = 0.9+Math.random()*0.2;
+    if(kind==="counter"){
+      const dmg = Math.round(S.power*(grade==="perfect"?1.5:1)*r);
+      ohp = Math.max(0,ohp-dmg);
+      anim = {att:"p",hit:"o",t:0,dur:0.5};
+      msg = `${grade==="perfect" ? "PERFECT COUNTER! " : "Counter! "}${move.toUpperCase()} beats ${real.toUpperCase()}. -${dmg}`;
+      fx.push({txt: grade==="perfect" ? "CRIT!!" : "POW!", t:1.0});
+    } else {
+      let dmg = opp.dmg*r, m;
+      if(kind==="slow"){ dmg*=1.25; m=`Too slow! ${opp.name} lands a ${real}.`; }
+      else if(kind==="flinch"){ dmg*=0.6; m=`You flinched! ${opp.name} takes the free hit.`; }
+      else if(kind==="fooled"){ m=`Fooled by the fake-out! It was a ${real.toUpperCase()}.`; }
+      else m=`Wrong move! ${move.toUpperCase()} doesn't stop a ${real.toUpperCase()}.`;
+      dmg = Math.round(dmg); php = Math.max(0,php-dmg);
+      anim = {att:"o",hit:"p",t:0,dur:0.5};
+      msg = `${m} -${dmg}`;
+      fx.push({txt:"OOF!", t:1.0});
+    }
+  }
+  function afterResolve(){
+    if(ohp<=0){ state="ko"; stateT=0; koWin=true; won++; msg=opp.lose; say(opp.lose); }
+    else if(php<=0){ state="ko"; stateT=0; koWin=false; msg=opp.win_; say(opp.win_); }
+    else nextRound();
+  }
+  function afterKo(){
+    if(koWin){
+      fightIdx++;
+      if(fightIdx>=OPPS.length){ finish(true); return; }
+      startFight(true);
+    } else if(retries>0){
+      retries--; startFight(false);
+    } else finish(false);
+  }
+  function finish(win){
+    running=false; state="done";
+    const best = parseInt(store("scrapBest")||"0",10);
+    let m = win ? `You cleared the alley! ${won}/${OPPS.length} opponents beaten.` : `Knocked out. Opponents beaten: ${won}/${OPPS.length}.`;
+    if(won>best){ store("scrapBest",String(won)); m += " New best!"; } else m += ` (best ${best})`;
+    msg = m; render();
+    say(win ? CATS[cur].champWin : CATS[cur].champLose);
+  }
+
+  function pick(move){
+    if(!running) return;
+    if(state==="wait"){ resolve("flinch",null,move); return; }
+    if(state!=="tell") return;
+    const showingFake = fake && stateT<fakeAt;
+    if(move===COUNTER[real]){
+      const rt = stateT - fakeAt;
+      resolve("counter", (!showingFake && rt<=realWin*0.35) ? "perfect" : "good", move);
+    } else resolve(showingFake ? "fooled" : "wrong", null, move);
+  }
+
+  function render(){
+    const g = Array.from({length:ROWS},()=>Array.from({length:COLS},()=>[" ",""]));
+    const set = (x,r,ch,st)=>{ if(r>=0&&r<ROWS&&x>=0&&x<COLS) g[r][x]=[ch,st]; };
+    const put = (x,r,str,st)=>[...str].forEach((ch,i)=>set(Math.round(x)+i,r,ch,st));
+
+    /* alley */
+    put(23,5," _____________ ",ST_DIM);
+    put(23,6,"|  DUMPSTER   |",ST_DIM);
+    put(23,7,"|_____________|",ST_DIM);
+    for(let c=0;c<COLS;c++){ set(c,8,"=",ST_DIM); }
+    for(let r=9;r<ROWS;r++) for(let c=0;c<COLS;c++) if((c+r)%4===0) set(c,r,"~",ST_DIM);
+
+    /* who is showing what */
+    const shown = state==="tell" ? ((fake && stateT<fakeAt) ? fake : real) : null;
+    const hitP = anim && anim.hit==="p" && anim.t>0.2, hitO = anim && anim.hit==="o" && anim.t>0.2;
+    const lunge = a => anim && anim.att===a ? Math.round(12*Math.sin(Math.PI*clamp(anim.t/anim.dur,0,1))) : 0;
+    const shake = h => h ? (Math.floor(anim.t*30)%2 ? 1 : -1) : 0;
+    const wiggle = shown==="pounce" ? (Math.floor(stateT*14)%2 ? 1 : -1) : 0;
+
+    function drawFighter(x,spec,face,tailSide){
+      const rows = [" /\\_/\\ ", face, " > ^ < ", "(_) (_)"];
+      const ranges = [[1,5],[0,6],[1,5],[0,6]];
+      rows.forEach((s,r)=>{
+        [...s].forEach((ch0,c)=>{
+          const ov = spec.ov && spec.ov(r,c);
+          const ch = ov && ov.ch ? ov.ch : ch0;
+          if(ch===" " && !(c>=ranges[r][0] && c<=ranges[r][1])) return;
+          const eye = r===1 && (c===2||c===4) && "oO><x^@".includes(ch);
+          let st = cellStyle(spec.region(r,c), spec.pal, eye);
+          if(eye) st = st.replace(/^color:[^;]+/, "color:"+spec.eye);
+          set(x+c, TOP+r, ch, st);
+        });
+      });
+      const tx = tailSide==="left" ? [x-1,x-2] : [x+7,x+8];
+      tx.forEach((xx,i)=>set(xx,TOP+3,"~",cellStyle(spec.tail[i],spec.pal,false)));
+      if(spec.crown) put(x+2,TOP-1,"^^^",cellStyle("gold",spec.pal,true));
+    }
+
+    const pFace = (state==="resolve"||state==="ko") && hitP || (state==="ko"&&!koWin) ? "( x.x )" : "( o.o )";
+    const oFace = shown ? TELL[shown].face : ((state==="resolve"||state==="ko") && hitO || (state==="ko"&&koWin) ? "( x.x )" : "( o.o )");
+    drawFighter(PX + lunge("p") + shake(hitP), SPEC[cur], pFace, "left");
+    drawFighter(OX - lunge("o") + shake(hitO) + wiggle, opp.spec, oFace, "right");
+
+    /* tell label over the opponent */
+    if(shown){
+      const lab = `[ ${TELL[shown].label} ]`;
+      put(OX+3-lab.length/2,2,lab,`color:${TELL[shown].col};font-weight:bold`);
+    } else if(state==="wait"){
+      put(OX+1,2,"...watching...",ST_DIM);
+    }
+    fx.forEach(f=>put(COLS/2 - f.txt.length/2, 3, f.txt, ST_HOT));
+
+    /* fluff bars */
+    const pn = CATS[cur].name, ratio = php/pmax, oratio = ohp/omax;
+    put(1,0,pn,ST_HOT);
+    put(1,1,bar(php,pmax,20),hpColor(ratio)); put(22,1,String(php),"color:#e8dcd0");
+    put(COLS-1-opp.name.length,0,opp.name,ST_HOT);
+    put(COLS-21,1,bar(ohp,omax,20),hpColor(oratio)); put(COLS-21-String(ohp).length-1,1,String(ohp),"color:#e8dcd0");
+
+    let html="";
+    g.forEach(row=>{
+      let run="", key="";
+      const flush=()=>{ if(!run) return; html += key ? `<span style="${key}">${esc(run)}</span>` : esc(run); run=""; };
+      row.forEach(([ch,st])=>{ if(st!==key){ flush(); key=st; } run+=ch; });
+      flush(); html+="\n";
+    });
+    $("scrapGfx").innerHTML = html;
+
+    const S = STATS[cur];
+    if(state==="idle") $("scrapStat").textContent = `${CATS[cur].name}: ${S.hp} fluff, hits for ${S.power}, reflexes ${S.win}x (${S.note}). Press Start.`;
+    else if(state==="done") $("scrapStat").textContent = msg;
+    else $("scrapStat").textContent = `Fight ${fightIdx+1}/${OPPS.length}   Retries: ${retries}   ${msg}`;
+  }
+
+  function frame(id,ts){
+    if(!running || id!==loop) return;
+    const dt = Math.min(0.04,(ts-last)/1000); last=ts; stateT+=dt;
+    fx.forEach(f=>f.t-=dt); fx = fx.filter(f=>f.t>0);
+    if(anim){ anim.t += dt; if(anim.t>anim.dur+0.4) anim.t = anim.dur+0.4; }
+    if(state==="intro"){ if(stateT>2.2) nextRound(); }
+    else if(state==="wait"){ if(stateT>=waitDur){ state="tell"; stateT=0; } }
+    else if(state==="tell"){ if(stateT>=fakeAt+realWin) resolve("slow",null,null); }
+    else if(state==="resolve"){ if(stateT>1.2) afterResolve(); }
+    else if(state==="ko"){ if(stateT>2.6) afterKo(); }
+    if(!running) return;
+    render();
+    requestAnimationFrame(ts2=>frame(id,ts2));
+  }
+  function start(){
+    unfocus();
+    if(active && active!==api && active.stop) active.stop();
+    active=api; running=true; fightIdx=0; retries=2; won=0; koWin=false;
+    startFight(false);
+    const id=++loop; last=performance.now(); requestAnimationFrame(ts2=>frame(id,ts2));
+  }
+  const api = {
+    down(){}, up(){},
+    stop(){ running=false; loop++; state="idle"; fightIdx=0; opp=OPPS[0]; pmax=STATS[cur].hp; php=pmax; omax=ohp=opp.hp; anim=null; fx=[]; msg=""; render(); },
+    refresh(){ if(!running){ state="idle"; pmax=STATS[cur].hp; php=pmax; render(); } }
+  };
+  document.addEventListener("keydown",e=>{
+    if(active!==api || e.repeat) return;
+    const m = {Digit1:"swat",Digit2:"dodge",Digit3:"hiss",Numpad1:"swat",Numpad2:"dodge",Numpad3:"hiss"}[e.code];
+    if(m){ e.preventDefault(); pick(m); }
+  });
+  $("scrapStart").addEventListener("click",start);
+  [["scrapSwat","swat"],["scrapDodge","dodge"],["scrapHiss","hiss"]].forEach(([id,m])=>{
+    $(id).addEventListener("pointerdown",e=>{ e.preventDefault(); pick(m); });
+  });
+  state="idle"; pmax=STATS[cur].hp; php=pmax; omax=ohp=opp.hp;
+  render();
+  return api;
+})();
+/* idle preview of the fight follows whoever is selected */
+document.querySelectorAll("#pick button").forEach(b=>b.addEventListener("click",()=>scrap.refresh()));
+</script>
+</body>
+</html>
